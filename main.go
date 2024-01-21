@@ -22,11 +22,35 @@ func main() {
 	e.Start(":8080")
 }
 
+type User struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+var users []User
+
 func register(c echo.Context) error {
+	u := new(User)
+	if err := c.Bind(u); err != nil {
+		return err
+	}
+
+	users = append(users, *u)
+
 	return c.String(http.StatusOK, "User registered successfully")
 }
 
 func login(c echo.Context) error {
+	u := new(User)
+	if err := c.Bind(u); err != nil {
+		return err
+	}
 
-	return c.String(http.StatusOK, "User logged in successfully")
+	for _, user := range users {
+		if user.Username == u.Username && user.Password == u.Password {
+			return c.String(http.StatusOK, "User logged in successfully")
+		}
+	}
+
+	return c.String(http.StatusUnauthorized, "Invalid credentials")
 }
