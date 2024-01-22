@@ -1,27 +1,39 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 
-	_ "github.com/jackc/pgx/v4/stdlib"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-var db *sql.DB
+var db *gorm.DB
 
 func main() {
-	// Initialize PostgreSQL connection
-	connStr := "user=my_user dbname=my_database password=my_password host=postgres sslmode=disable"
+	// Initialize PostgreSQL connection using GORM
+	dsn := "user=my_user dbname=my_database password=my_password host=postgres sslmode=disable"
 	var err error
-	db, err = sql.Open("pgx", connStr)
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println("Error connecting to PostgreSQL:", err)
 		return
 	}
-	defer db.Close()
+	sqlDB, err := db.DB()
+	if err != nil {
+		fmt.Println("Error getting DB:", err)
+		return
+	}
+	defer sqlDB.Close()
+
+	// Auto Migrate the User model
+	if err := db.AutoMigrate(&User{}); err != nil {
+		fmt.Println("Error auto migrating:", err)
+		return
+	}
 
 	e := echo.New()
 
@@ -38,6 +50,7 @@ func main() {
 }
 
 type User struct {
+	gorm.Model
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
@@ -48,8 +61,8 @@ func register(c echo.Context) error {
 		return err
 	}
 
-	// Insert user into the PostgreSQL database
-	_, err := db.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", u.Username, u.Password)
+	// Create user using GORM
+	err := db.Create(u).Error
 	if err != nil {
 		return err
 	}
@@ -63,14 +76,12 @@ func login(c echo.Context) error {
 		return err
 	}
 
-	// Query the PostgreSQL database for the user
-	row := db.QueryRow("SELECT username, password FROM users WHERE username=$1 AND password=$2", u.Username, u.Password)
-
-	var username, password string
-	err := row.Scan(&username, &password)
+	// Query the user using GORM
+	var existingUser User
+	err := db.Where("username = ? AND password = ?", u.Username, u.Password).First(&existingUser).Error
 	if err == nil {
 		return c.String(http.StatusOK, "User logged in successfully")
-	} else if err == sql.ErrNoRows {
+	} else if err == gorm.ErrRecordNotFound {
 		return c.String(http.StatusUnauthorized, "Invalid credentials")
 	} else {
 		return err
