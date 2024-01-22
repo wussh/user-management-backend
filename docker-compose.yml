@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:alpine
+    container_name: my_postgres
+    environment:
+      POSTGRES_DB: my_database
+      POSTGRES_USER: my_user
+      POSTGRES_PASSWORD: my_password
+    ports:
+      - "5432:5432"
+
+  myapp:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
