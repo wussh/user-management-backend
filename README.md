@@ -1,6 +1,13 @@
-# Project Title
+## Project Title: GoEchoAuth
 
-Describe your project in a concise and informative manner. Provide a brief overview of its purpose and functionality.
+GoEchoAuth is a secure authentication API built with Go and Echo framework, utilizing PostgreSQL as the database. The primary purpose of this project is to demonstrate a simple user registration and login system with a focus on security practices. The application incorporates GORM for seamless interaction with the database and offers a foundation for developers to understand and extend user authentication features in their own Go projects.
+
+### Key Features
+
+- User registration with secure password storage.
+- User login with authentication and authorization.
+- Utilizes Docker for easy setup and deployment.
+- Demonstrates best practices for Go web development.
 
 ## Table of Contents
 
@@ -11,8 +18,8 @@ Describe your project in a concise and informative manner. Provide a brief overv
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [Endpoints](#endpoints)
-- [Contributing](#contributing)
-- [License](#license)
+
+Feel free to explore the repository to understand how to implement secure user authentication in Go applications.
 
 ## Introduction
 
